@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Internet en México y Contaminación de Cuerpos de Agua</title>
+
+<!-- Librerías -->
+<link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+
+<style>
+:root{
+--bg:#08111f; --text:#fff; --glass:rgba(255,255,255,.12);
+}
+.light{
+--bg:#eef5ff; --text:#111; --glass:rgba(255,255,255,.75);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+margin:0;font-family:Inter,Segoe UI,sans-serif;
+background:var(--bg);color:var(--text);
+transition:.4s;
+overflow-x:hidden;
+}
+body::before{
+content:"";
+position:fixed;inset:0;
+background:
+radial-gradient(circle at 20% 20%,rgba(0,180,255,.25),transparent 25%),
+radial-gradient(circle at 80% 40%,rgba(255,255,255,.12),transparent 20%),
+radial-gradient(circle at 60% 80%,rgba(0,255,170,.12),transparent 25%);
+animation:floatBg 15s infinite alternate;
+z-index:-1;
+}
+@keyframes floatBg{
+to{transform:scale(1.15) translateY(-30px)}
+}
+nav{
+position:fixed;top:12px;left:50%;
+transform:translateX(-50%);
+backdrop-filter:blur(25px);
+background:var(--glass);
+padding:12px 24px;
+border-radius:40px;
+z-index:999;
+}
+nav a{color:var(--text);text-decoration:none;margin:0 8px}
+.hero{padding:140px 20px 80px;text-align:center}
+.glass{
+max-width:1300px;
+margin:20px auto;
+padding:28px;
+border-radius:28px;
+background:var(--glass);
+backdrop-filter:blur(22px);
+}
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:20px;
+}
+.counter{
+font-size:2.4rem;font-weight:bold;
+}
+canvas{max-height:450px}
+#map{height:550px;border-radius:20px}
+.timeline{
+border-left:4px solid #48a8ff;
+padding-left:20px;
+}
+img{
+width:100%;border-radius:20px;
+}
+button{
+cursor:pointer;padding:10px;border:none;border-radius:10px;
+}
+iframe{
+width:100%;height:550px;border:none;border-radius:20px;
+}
+footer{text-align:center;padding:40px}
+</style>
+</head>
+<body>
+
+<nav>
+<a href="#inicio">Inicio</a>
+<a href="#internet">Internet</a>
+<a href="#agua">Agua</a>
+<a href="#mapa">Mapa</a>
+<a href="#video">Video</a>
+<a href="#referencias">Referencias</a>
+<button onclick="document.body.classList.toggle('light')">☀️/🌙</button>
+</nav>
+
+<section id="inicio" class="hero">
+<h1>Internet en México y Contaminación de Cuerpos de Agua</h1>
+<p>Investigación documental basada en información oficial del INEGI (ENDUTIH) y CONAGUA.</p>
+</section>
+
+<div class="glass" data-aos="fade-up">
+<h2>Resumen Ejecutivo</h2>
+<p>
+Este proyecto analiza cómo el acceso a Internet facilita la investigación, difusión y educación ambiental
+sobre la contaminación de cuerpos de agua en México. Se integran estadísticas oficiales y visualizaciones interactivas.
+</p>
+</div>
+
+<div id="internet" class="glass" data-aos="fade-right">
+<h2>Indicadores ENDUTIH 2024</h2>
+<div class="grid">
+<div><div class="counter" data-target="83.1">0</div><p>% usuarios de Internet.</p></div>
+<div><div class="counter" data-target="100.2">0</div><p>Millones de usuarios.</p></div>
+<div><div class="counter" data-target="73.6">0</div><p>% hogares con Internet.</p></div>
+<div><div class="counter" data-target="97">0</div><p>% acceso móvil.</p></div>
+</div>
+</div>
+
+<div class="glass">
+<h2>Gráfica ENDUTIH</h2>
+<canvas id="chart1"></canvas>
+</div>
+
+<div class="glass">
+<h2>Evolución del Uso de Internet</h2>
+<canvas id="chart2"></canvas>
+</div>
+
+<div id="agua" class="glass" data-aos="zoom-in">
+<h2>Problemática Ambiental</h2>
+<p>
+La contaminación de ríos, lagos y acuíferos en México está asociada a descargas residuales urbanas,
+actividades industriales y escurrimientos agrícolas. CONAGUA monitorea la calidad del agua mediante redes nacionales.
+</p>
+</div>
+
+<div class="glass">
+<h2>Fuentes de Contaminación</h2>
+<canvas id="chart3"></canvas>
+</div>
+
+<div class="glass">
+<h2>Gestión Hídrica</h2>
+<canvas id="chart4"></canvas>
+</div>
+
+<div class="glass">
+<h2>Línea de Tiempo</h2>
+<div class="timeline">
+<p><b>2015</b> – Crecimiento sostenido del acceso a Internet.</p>
+<p><b>2020</b> – Aumento por educación y trabajo remoto.</p>
+<p><b>2024</b> – 83.1% de la población utiliza Internet.</p>
+<p><b>2025+</b> – Consolidación de herramientas digitales para investigación ambiental.</p>
+</div>
+</div>
+
+<div id="mapa" class="glass">
+<h2>Mapa Interactivo de México</h2>
+<div id="map"></div>
+</div>
+
+<div class="glass">
+<h2>Galería</h2>
+<img src="https://upload.wikimedia.org/wikipedia/commons/8/89/Rio_Grijalva.jpg" alt="Río Grijalva">
+<p>Crédito: Wikimedia Commons.</p>
+</div>
+
+<div id="video" class="glass">
+<h2>Video Educativo en Español</h2>
+<iframe src="https://www.youtube.com/embed/IMxOYSUSLmU" allowfullscreen></iframe>
+</div>
+
+<div id="referencias" class="glass">
+<h2>Referencias</h2>
+<ol>
+<li>INEGI. ENDUTIH 2024.</li>
+<li>https://www.inegi.org.mx</li>
+<li>CONAGUA. Indicadores de Calidad del Agua.</li>
+<li>https://www.gob.mx/conagua</li>
+<li>Sistema Nacional de Información del Agua.</li>
+</ol>
+</div>
+
+<footer>
+Proyecto académico con diseño Glassmorphism inspirado en interfaces inmersivas.
+</footer>
+
+<script>
+AOS.init();
+
+document.querySelectorAll('.counter').forEach(el=>{
+let t=parseFloat(el.dataset.target),v=0;
+let timer=setInterval(()=>{
+v+=t/100;
+if(v>=t){v=t;clearInterval(timer)}
+el.innerHTML=v.toFixed(1);
+},20);
+});
+
+new Chart(chart1,{
+type:'bar',
+data:{
+labels:['Usuarios Internet','Hogares con Internet'],
+datasets:[{label:'Porcentaje',data:[83.1,73.6]}]
+}
+});
+
+new Chart(chart2,{
+type:'line',
+data:{
+labels:['2019','2020','2021','2022','2023','2024'],
+datasets:[{label:'Uso de Internet (%)',data:[70,72,75,78,81,83.1]}]
+}
+});
+
+new Chart(chart3,{
+type:'doughnut',
+data:{
+labels:['Urbanas','Industriales','Agrícolas'],
+datasets:[{data:[46,28,26]}]
+}
+});
+
+new Chart(chart4,{
+type:'radar',
+data:{
+labels:['Monitoreo','Saneamiento','Tratamiento','Prevención','Educación'],
+datasets:[{label:'Gestión hídrica',data:[90,75,70,65,80]}]
+}
+});
+
+const map=L.map('map').setView([23.5,-102.5],5);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+L.marker([19.43,-99.13]).addTo(map).bindPopup('Ciudad de México');
+L.marker([17.99,-92.93]).addTo(map).bindPopup('Tabasco');
+L.marker([25.68,-100.31]).addTo(map).bindPopup('Monterrey');
+</script>
+
+</body>
+</html>
