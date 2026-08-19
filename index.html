@@ -168,8 +168,8 @@
             border-radius: 50%;
             box-shadow: 0 0 20px rgba(0,0,0,0.8), 0 0 10px var(--accent-gold-glow);
             background-color: #16161a;
-            max-width: 100%;
-            height: auto;
+            width: 300px;
+            height: 300px;
         }
 
         .pointer {
@@ -295,8 +295,8 @@
             <h2>¡Gira y Gana!</h2>
             <div class="wheel-container">
                 <div class="pointer"></div>
-                <!-- Tamaño optimizado a 320x320 para evitar amontonamiento -->
-                <canvas id="wheel" width="320" height="320"></canvas>
+                <!-- Canvas HD -->
+                <canvas id="wheel" width="600" height="600"></canvas>
             </div>
             <button id="spinBtn" class="btn-main" onclick="girarRuleta()">Girar Ruleta</button>
         </div>
@@ -307,7 +307,7 @@
         <div class="card-box">
             <h2>Código ya utilizado</h2>
             <p>Este código ya fue canjeado o ya realizaste tu giro. Cada código tiene un único uso.</p>
-            <button class="btn-secondary" onclick="cerrarSesionLocal()">Salir / Cambiar cuenta</button>
+            <button class="btn-secondary" onclick="cerrarSesionLocal()">Salir</button>
         </div>
     </section>
 
@@ -389,16 +389,16 @@
             location.reload();
         }
 
-        // --- RULETA OPTIMIZADA ---
+        // --- RULETA HD (12 casillas, textos verticales) ---
         const canvas = document.getElementById('wheel');
         const ctx = canvas.getContext('2d');
         
+        // 12 casillas exactas (4 de cada uno)
         const options = [
-            'RODMAN', 'TYSON', 'RODMAN', 'TYSON',
-            'RODMAN', 'TYSON', 'RODMAN', 'TYSON',
-            'RODMAN', 'TYSON', 'RODMAN', 'TYSON',
-            'RODMAN', 'TYSON', 'RODMAN', 'TYSON',
-            'RODMAN', 'TYSON', 'RODMAN', '10% DESC'
+            'RODMAN 9,100', 'TYSON 7,000', '10% DESC',
+            'RODMAN 9,100', 'TYSON 7,000', '10% DESC',
+            'RODMAN 9,100', 'TYSON 7,000', '10% DESC',
+            'RODMAN 9,100', 'TYSON 7,000', '10% DESC'
         ];
         
         const colors = ['#1a1a24', '#222230', '#2a2a3c', '#1f1f2b'];
@@ -406,11 +406,11 @@
         const arc = Math.PI / (options.length / 2);
 
         function drawWheel() {
-            const outsideRadius = 140;
-            const textRadius = 95;
-            const center = 160;
-            ctx.clearRect(0, 0, 320, 320);
-            ctx.lineWidth = 1;
+            const outsideRadius = 270;
+            const textRadius = 160;
+            const center = 300;
+            ctx.clearRect(0, 0, 600, 600);
+            ctx.lineWidth = 2;
 
             for (let i = 0; i < options.length; i++) {
                 const angle = startAngle + i * arc;
@@ -424,9 +424,12 @@
 
                 ctx.save();
                 ctx.fillStyle = (options[i] === '10% DESC') ? '#f3c614' : '#ffffff';
-                ctx.font = 'bold 9px Poppins, sans-serif';
+                ctx.font = 'bold 16px Poppins, sans-serif';
+                
+                // Rotación vertical orientada al radio
                 ctx.translate(center + Math.cos(angle + arc / 2) * textRadius, center + Math.sin(angle + arc / 2) * textRadius);
                 ctx.rotate(angle + arc / 2 + Math.PI / 2);
+                
                 const text = options[i];
                 ctx.fillText(text, -ctx.measureText(text).width / 2, 0);
                 ctx.restore();
@@ -470,11 +473,7 @@
             const arcd = arc * 180 / Math.PI;
             const index = Math.floor((360 - degrees % 360) / arcd);
             
-            // Mapeo completo del premio obtenido
             let premioFinal = options[index];
-            if (premioFinal === 'RODMAN') premioFinal = 'RODMAN 9,100';
-            if (premioFinal === 'TYSON') premioFinal = 'TYSON 7,000';
-
             alert(`¡Felicidades! Ganaste: ${premioFinal}`);
             cambiarVista('view-blocked');
         }
