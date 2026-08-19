@@ -18,7 +18,6 @@
             --text-muted: #a0a0a0;
             --border-color: rgba(243, 198, 20, 0.15);
             --warning-color: #f87171;
-            --danger: #f87171;
         }
 
         * {
@@ -73,7 +72,8 @@
         .view-section {
             display: none;
             min-height: 100vh;
-            padding-top: 100px;
+            padding-top: 90px;
+            padding-bottom: 50px;
             align-items: center;
             justify-content: center;
         }
@@ -87,35 +87,36 @@
         .card-box {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-            padding: 40px;
+            padding: 30px 20px;
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 15px var(--accent-gold-glow);
             text-align: center;
-            max-width: 420px;
-            width: 90%;
+            max-width: 400px;
+            width: 92%;
             margin: auto;
         }
 
         h2 {
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             color: var(--text-main);
+            font-size: 1.4rem;
         }
 
         p {
             color: var(--text-muted);
-            font-size: 0.95rem;
-            margin-bottom: 20px;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
         }
 
         input[type="text"], input[type="password"] {
             width: 100%;
-            padding: 14px;
+            padding: 12px;
             font-size: 1rem;
             background: #0c0c0e;
             border: 2px solid var(--border-color);
             border-radius: 10px;
             color: white;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             text-align: center;
             text-transform: uppercase;
             transition: 0.3s;
@@ -129,7 +130,7 @@
 
         .btn-main {
             width: 100%;
-            padding: 14px;
+            padding: 12px;
             font-size: 1rem;
             font-weight: 700;
             background: linear-gradient(135deg, #f3c614, #d4a707);
@@ -151,7 +152,7 @@
         .error-msg {
             color: var(--warning-color);
             font-size: 0.85rem;
-            margin-top: 10px;
+            margin-top: 8px;
         }
 
         /* --- ESTILOS DE LA RULETA --- */
@@ -160,23 +161,25 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin: 15px 0;
+            margin: 10px 0;
         }
 
         canvas {
             border-radius: 50%;
             box-shadow: 0 0 20px rgba(0,0,0,0.8), 0 0 10px var(--accent-gold-glow);
             background-color: #16161a;
+            max-width: 100%;
+            height: auto;
         }
 
         .pointer {
             position: absolute;
-            top: -5px;
+            top: -2px;
             width: 0;
             height: 0;
-            border-left: 10px solid transparent;
-            border-right: 10px solid transparent;
-            border-bottom: 22px solid var(--accent-gold);
+            border-left: 9px solid transparent;
+            border-right: 9px solid transparent;
+            border-bottom: 20px solid var(--accent-gold);
             z-index: 10;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
         }
@@ -188,7 +191,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.85);
             backdrop-filter: blur(5px);
             display: flex;
             align-items: center;
@@ -203,20 +206,20 @@
         .admin-box {
             background: var(--card-bg);
             border: 2px solid var(--accent-gold);
-            padding: 30px;
+            padding: 25px;
             border-radius: 15px;
             width: 90%;
-            max-width: 400px;
+            max-width: 380px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
 
         .code-list {
-            max-height: 150px;
+            max-height: 130px;
             overflow-y: auto;
             border: 1px solid var(--border-color);
-            padding: 10px;
-            margin: 15px 0;
-            font-size: 0.85rem;
+            padding: 8px;
+            margin: 12px 0;
+            font-size: 0.8rem;
             background: #0c0c0e;
             border-radius: 8px;
             text-align: left;
@@ -225,7 +228,7 @@
         .code-item {
             display: flex;
             justify-content: space-between;
-            padding: 6px 0;
+            padding: 5px 0;
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
 
@@ -255,11 +258,11 @@
         /* --- FOOTER --- */
         footer {
             text-align: center;
-            padding: 20px;
+            padding: 15px;
             background: #08080a;
             color: var(--text-muted);
             border-top: 1px solid var(--border-color);
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             position: absolute;
             bottom: 0;
             width: 100%;
@@ -268,7 +271,7 @@
 </head>
 <body>
 
-    <!-- Header Fijo (Doble clic en "BROSKI" abre el panel admin oculto) -->
+    <!-- Header Fijo: Doble clic en "BROSKI" abre el panel admin -->
     <header>
         <div class="logo" ondblclick="abrirAdmin()">
             <i class="fa-solid fa-crown"></i> BROSKI<span>MARKET</span>
@@ -292,7 +295,8 @@
             <h2>¡Gira y Gana!</h2>
             <div class="wheel-container">
                 <div class="pointer"></div>
-                <canvas id="wheel" width="280" height="280"></canvas>
+                <!-- Tamaño optimizado a 320x320 para evitar amontonamiento -->
+                <canvas id="wheel" width="320" height="320"></canvas>
             </div>
             <button id="spinBtn" class="btn-main" onclick="girarRuleta()">Girar Ruleta</button>
         </div>
@@ -307,21 +311,21 @@
         </div>
     </section>
 
-    <!-- PANEL ADMIN OCULTO (Se abre haciendo doble clic en el logo "BROSKI") -->
+    <!-- PANEL ADMIN OCULTO -->
     <div id="adminModal" class="modal-overlay hidden">
         <div class="admin-box">
-            <h2>Panel de Administración</h2>
+            <h2>Panel Admin</h2>
             <div id="adminLoginView">
                 <p>Contraseña de Administrador:</p>
                 <input type="password" id="adminPass" placeholder="Contraseña">
                 <button class="btn-main" onclick="verificarAdmin()">Ingresar</button>
-                <button class="btn-secondary" onclick="cerrarAdmin()" style="margin-top: 10px;">Cancelar</button>
+                <button class="btn-secondary" onclick="cerrarAdmin()" style="margin-top: 8px;">Cancelar</button>
             </div>
             <div id="adminDashboardView" class="hidden">
-                <p><strong>Generar nuevo código:</strong></p>
+                <p><strong>Nuevo código:</strong></p>
                 <input type="text" id="newCodeText" placeholder="Ej: VIP2026">
                 <button class="btn-main" onclick="crearCodigo()">Crear Código</button>
-                <p style="margin-top: 15px; font-size: 0.9rem;"><strong>Códigos Existentes:</strong></p>
+                <p style="margin-top: 12px; font-size: 0.85rem;"><strong>Códigos Existentes:</strong></p>
                 <div class="code-list" id="codeListContainer"></div>
                 <button class="btn-secondary" onclick="cerrarAdmin()">Cerrar Panel</button>
             </div>
@@ -334,7 +338,7 @@
     </footer>
 
     <script>
-        // Inicializar Base de Datos en LocalStorage si no existe
+        // Base de datos de códigos iniciales
         if (!localStorage.getItem('codigos_ruleta')) {
             const codigosIniciales = {
                 "RULETA01": false,
@@ -343,7 +347,6 @@
             localStorage.setItem('codigos_ruleta', JSON.stringify(codigosIniciales));
         }
 
-        // Revisar si el usuario ya gastó su giro en esta sesión
         window.onload = function() {
             if (sessionStorage.getItem('giro_realizado') === 'true') {
                 cambiarVista('view-blocked');
@@ -366,12 +369,10 @@
                 errorDiv.textContent = "Por favor, escribe un código.";
                 return;
             }
-
             if (!(input in db)) {
                 errorDiv.textContent = "Código inválido.";
                 return;
             }
-
             if (db[input] === true) {
                 errorDiv.textContent = "Este código ya ha sido utilizado.";
                 return;
@@ -388,16 +389,16 @@
             location.reload();
         }
 
-        // --- LÓGICA DE LA RULETA (20 secciones: 5% probabilidad descuento) ---
+        // --- RULETA OPTIMIZADA ---
         const canvas = document.getElementById('wheel');
         const ctx = canvas.getContext('2d');
         
         const options = [
-            'RODMAN 9,100', 'TYSON 7,000', 'RODMAN 9,100', 'TYSON 7,000',
-            'RODMAN 9,100', 'TYSON 7,000', 'RODMAN 9,100', 'TYSON 7,000',
-            'RODMAN 9,100', 'TYSON 7,000', 'RODMAN 9,100', 'TYSON 7,000',
-            'RODMAN 9,100', 'TYSON 7,000', 'RODMAN 9,100', 'TYSON 7,000',
-            'RODMAN 9,100', 'TYSON 7,000', 'RODMAN 9,100', '10% DESC'
+            'RODMAN', 'TYSON', 'RODMAN', 'TYSON',
+            'RODMAN', 'TYSON', 'RODMAN', 'TYSON',
+            'RODMAN', 'TYSON', 'RODMAN', 'TYSON',
+            'RODMAN', 'TYSON', 'RODMAN', 'TYSON',
+            'RODMAN', 'TYSON', 'RODMAN', '10% DESC'
         ];
         
         const colors = ['#1a1a24', '#222230', '#2a2a3c', '#1f1f2b'];
@@ -405,10 +406,10 @@
         const arc = Math.PI / (options.length / 2);
 
         function drawWheel() {
-            const outsideRadius = 120;
-            const textRadius = 75;
-            const center = 140;
-            ctx.clearRect(0, 0, 280, 280);
+            const outsideRadius = 140;
+            const textRadius = 95;
+            const center = 160;
+            ctx.clearRect(0, 0, 320, 320);
             ctx.lineWidth = 1;
 
             for (let i = 0; i < options.length; i++) {
@@ -440,7 +441,6 @@
         function girarRuleta() {
             document.getElementById('spinBtn').disabled = true;
             
-            // Marcar código como usado y bloquear la sesión actual
             let db = JSON.parse(localStorage.getItem('codigos_ruleta'));
             db[codigoActual] = true;
             localStorage.setItem('codigos_ruleta', JSON.stringify(db));
@@ -469,7 +469,13 @@
             const degrees = startAngle * 180 / Math.PI + 90;
             const arcd = arc * 180 / Math.PI;
             const index = Math.floor((360 - degrees % 360) / arcd);
-            alert(`¡Felicidades! Ganaste: ${options[index]}`);
+            
+            // Mapeo completo del premio obtenido
+            let premioFinal = options[index];
+            if (premioFinal === 'RODMAN') premioFinal = 'RODMAN 9,100';
+            if (premioFinal === 'TYSON') premioFinal = 'TYSON 7,000';
+
+            alert(`¡Felicidades! Ganaste: ${premioFinal}`);
             cambiarVista('view-blocked');
         }
 
@@ -479,7 +485,7 @@
             return c * (t * t * t + 1) + b;
         }
 
-        // --- PANEL ADMIN OCULTO ---
+        // --- PANEL ADMIN ---
         function abrirAdmin() {
             document.getElementById('adminModal').classList.remove('hidden');
             document.getElementById('adminLoginView').classList.remove('hidden');
