@@ -8,6 +8,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- SDK de Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         :root {
             --bg-color: #0c0c0e;
@@ -360,13 +363,11 @@
     </footer>
 
     <script>
-        if (!localStorage.getItem('codigos_ruleta_v2')) {
-            const codigosIniciales = {
-                "RULETA01": { usado: false, premio: "" },
-                "BROSKI10": { usado: false, premio: "" }
-            };
-            localStorage.setItem('codigos_ruleta_v2', JSON.stringify(codigosIniciales));
-        }
+        // --- CONFIGURACIÓN DE SUPABASE ---
+        const SUPABASE_URL = 'https://xgfweauznhirsfqwvinq.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_AWhzEOXtdBDmpwjoMhmitQ_EoSnuapU';
+        
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let codigoActual = "";
 
@@ -383,22 +384,30 @@
             document.getElementById(idVista).classList.add('active');
         }
 
-        function validarCodigo() {
+        async function validarCodigo() {
             const input = document.getElementById('codeInput').value.trim().toUpperCase();
             const errorDiv = document.getElementById('errorMsg');
-            let db = JSON.parse(localStorage.getItem('codigos_ruleta_v2'));
 
             if (!input) {
                 errorDiv.textContent = "Por favor, escribe un código.";
                 return;
             }
-            if (!(input in db)) {
-                errorDiv.textContent = "Código inválido.";
+
+            errorDiv.textContent = "Verificando en la nube...";
+
+            let { data, error } = await _supabase
+                .from('codigos_ruleta')
+                .select('*')
+                .eq('codigo', input)
+                .single();
+
+            if (error || !data) {
+                errorDiv.textContent = "Código inválido o no existe.";
                 return;
             }
 
-            if (db[input].usado === true) {
-                document.getElementById('oldPrizeText').textContent = db[input].premio || "Premio Canjeado";
+            if (data.usado === true) {
+                document.getElementById('oldPrizeText').textContent = data.premio || "Premio Canjeado";
                 cambiarVista('view-blocked');
                 return;
             }
@@ -414,15 +423,13 @@
             location.reload();
         }
 
-        // --- RULETA HD SÚPER FLUIDA (120 FPS Native) ---
+        // --- RULETA HD SÚPER FLUIDA ---
         const canvas = document.getElementById('wheel');
         const ctx = canvas.getContext('2d');
         
         const options = [
-            'RODMAN 9,100', 'TYSON 7,000', '10% DESC',
-            'RODMAN 9,100', 'TYSON 7,000', '10% DESC',
-            'RODMAN 9,100', 'TYSON 7,000', '10% DESC',
-            'RODMAN 9,100', 'TYSON 7,000', '10% DESC'
+            'RODMAN 9,100', 'TYSON 7,000', '10% DESC', '20% DESC',
+            'RODMAN 9,100', 'TYSON 7,000', '10% DESC', '20% DESC'
         ];
         
         const colors = ['#1a1a24', '#222230', '#2a2a3c', '#1f1f2b'];
@@ -438,7 +445,6 @@
             for (let i = 0; i < options.length; i++) {
                 const angle = startAngle + i * arc;
                 
-                // Rellenar cada porción sin líneas cruzadas en el centro
                 ctx.fillStyle = colors[i % colors.length];
                 ctx.beginPath();
                 ctx.moveTo(center, center);
@@ -446,7 +452,6 @@
                 ctx.lineTo(center, center);
                 ctx.fill();
 
-                // Borde dorado exterior limpio
                 ctx.save();
                 ctx.strokeStyle = '#f3c614';
                 ctx.lineWidth = 2;
@@ -455,10 +460,9 @@
                 ctx.stroke();
                 ctx.restore();
 
-                // Textos
                 ctx.save();
-                ctx.fillStyle = (options[i] === '10% DESC') ? '#f3c614' : '#ffffff';
-                ctx.font = 'bold 16px Poppins, sans-serif';
+                ctx.fillStyle = (options[i].includes('DESC')) ? '#f3c614' : '#ffffff';
+                ctx.font = 'bold 15px Poppins, sans-serif';
                 
                 ctx.translate(center + Math.cos(angle + arc / 2) * textRadius, center + Math.sin(angle + arc / 2) * textRadius);
                 ctx.rotate(angle + arc / 2 + Math.PI / 2 + Math.PI / 2);
@@ -478,9 +482,25 @@
         function girarRuleta() {
             document.getElementById('spinBtn').disabled = true;
             
-            spinAngleStart = Math.random() * 0.3 + 0.4; // Velocidad inicial optimizada para alta tasa de refresco
+            let indicesPermitidos = [];
+            options.forEach((opt, idx) => {
+                if (opt !== '20% DESC') {
+                    indicesPermitidos.push(idx);
+                }
+            });
+
+            let indiceGanadorForzado = indicesPermitidos[Math.floor(Math.random() * indicesPermitidos.length)];
+            
+            const arcd = arc * 180 / Math.PI;
+            let anguloObjetivoGrados = 360 - (indiceGanadorForzado * arcd + arcd / 2);
+            let vueltasExtra = 360 * 5; 
+            let anguloFinalRad = (anguloObjetivoGrados + vueltasExtra - 90) * (Math.PI / 180);
+            
+            startAngle = anguloFinalRad % (Math.PI * 2);
+
+            spinAngleStart = Math.random() * 0.3 + 0.4; 
             spinTime = 0;
-            spinTimeTotal = 4500; // Duración total del giro en milisegundos (4.5 segundos)
+            spinTimeTotal = 4500; 
             lastTimestamp = performance.now();
             
             cancelAnimationFrame(animationFrameId);
@@ -497,11 +517,10 @@
                 return;
             }
 
-            // Cálculo de desaceleración por curvas cúbicas (suavizado uniforme a cualquier FPS)
             let progress = spinTime / spinTimeTotal;
             let currentSpeed = spinAngleStart * (1 - easeOutCubic(progress));
             
-            startAngle += currentSpeed * (deltaTime / 16.66); // Normalizado a referencia de 60fps base por frame
+            startAngle += currentSpeed * (deltaTime / 16.66);
             drawWheel();
 
             animationFrameId = requestAnimationFrame(rotateWheel);
@@ -511,7 +530,7 @@
             return 1 - Math.pow(1 - t, 3);
         }
 
-        function stopRotateWheel() {
+        async function stopRotateWheel() {
             cancelAnimationFrame(animationFrameId);
             const degrees = startAngle * 180 / Math.PI + 90;
             const arcd = arc * 180 / Math.PI;
@@ -519,9 +538,14 @@
             
             let premioFinal = options[index];
 
-            let db = JSON.parse(localStorage.getItem('codigos_ruleta_v2'));
-            db[codigoActual] = { usado: true, premio: premioFinal };
-            localStorage.setItem('codigos_ruleta_v2', JSON.stringify(db));
+            let { error } = await _supabase
+                .from('codigos_ruleta')
+                .update({ usado: true, premio: premioFinal })
+                .eq('codigo', codigoActual);
+
+            if (error) {
+                console.error("Error al guardar el premio en la nube:", error);
+            }
 
             sessionStorage.setItem('giro_realizado', 'true');
             sessionStorage.setItem('ultimo_premio', premioFinal);
@@ -553,26 +577,41 @@
             }
         }
 
-        function crearCodigo() {
+        async function crearCodigo() {
             const nuevoTxt = document.getElementById('newCodeText').value.trim().toUpperCase();
             if (!nuevoTxt) return;
-            let db = JSON.parse(localStorage.getItem('codigos_ruleta_v2'));
-            db[nuevoTxt] = { usado: false, premio: "" };
-            localStorage.setItem('codigos_ruleta_v2', JSON.stringify(db));
+
+            let { error } = await _supabase
+                .from('codigos_ruleta')
+                .insert([{ codigo: nuevoTxt, usado: false, premio: '' }]);
+
+            if (error) {
+                alert("Error al crear código (quizás ya existe).");
+                return;
+            }
+
             document.getElementById('newCodeText').value = '';
             actualizarListaCodigos();
         }
 
-        function actualizarListaCodigos() {
-            let db = JSON.parse(localStorage.getItem('codigos_ruleta_v2'));
+        async function actualizarListaCodigos() {
+            let { data, error } = await _supabase
+                .from('codigos_ruleta')
+                .select('*');
+
             let container = document.getElementById('codeListContainer');
             container.innerHTML = "";
-            for (let codigo in db) {
-                let data = db[codigo];
-                let estadoClass = data.usado ? "code-item used" : "code-item";
-                let estadoTexto = data.usado ? `Usado (${data.premio})` : "Disponible";
-                container.innerHTML += `<div class="${estadoClass}"><span>${codigo}</span> <span><b>${estadoTexto}</b></span></div>`;
+
+            if (error || !data) {
+                container.innerHTML = "<p>Error al cargar códigos.</p>";
+                return;
             }
+
+            data.forEach(item => {
+                let estadoClass = item.usado ? "code-item used" : "code-item";
+                let estadoTexto = item.usado ? `Usado (${item.premio})` : "Disponible";
+                container.innerHTML += `<div class="${estadoClass}"><span>${item.codigo}</span> <span><b>${estadoTexto}</b></span></div>`;
+            });
         }
     </script>
 </body>
