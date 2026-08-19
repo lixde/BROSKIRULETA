@@ -350,7 +350,6 @@
     </footer>
 
     <script>
-        // Estructura de base de datos: { "CODIGO": { usado: true/false, premio: "..." } }
         if (!localStorage.getItem('codigos_ruleta_v2')) {
             const codigosIniciales = {
                 "RULETA01": { usado: false, premio: "" },
@@ -387,13 +386,15 @@
                 errorDiv.textContent = "Código inválido.";
                 return;
             }
+
+            // Validar si ya fue usado ANTES de dejarlo pasar a la ruleta
             if (db[input].usado === true) {
-                // Si ya está usado, mostrar directamente lo que ganó
                 document.getElementById('prizeResultText').textContent = db[input].premio || "Premio Canjeado";
                 cambiarVista('view-blocked');
                 return;
             }
 
+            // Si el código NO está usado, se le permite avanzar a la ruleta
             codigoActual = input;
             errorDiv.textContent = "";
             cambiarVista('view-wheel');
@@ -405,7 +406,7 @@
             location.reload();
         }
 
-        // --- RULETA HD (12 casillas, rotación ajustada 90°) ---
+        // --- RULETA HD ---
         const canvas = document.getElementById('wheel');
         const ctx = canvas.getContext('2d');
         
@@ -441,7 +442,6 @@
                 ctx.fillStyle = (options[i] === '10% DESC') ? '#f3c614' : '#ffffff';
                 ctx.font = 'bold 16px Poppins, sans-serif';
                 
-                // Rotación vertical con ajuste de 90° adicionales para mantener los textos dentro
                 ctx.translate(center + Math.cos(angle + arc / 2) * textRadius, center + Math.sin(angle + arc / 2) * textRadius);
                 ctx.rotate(angle + arc / 2 + Math.PI / 2 + Math.PI / 2);
                 
@@ -459,7 +459,6 @@
         function girarRuleta() {
             document.getElementById('spinBtn').disabled = true;
             
-            // Más giros agregando mayor velocidad inicial y tiempo prolongado
             spinAngleStart = Math.random() * 20 + 25; 
             spinTime = 0;
             spinTimeTotal = Math.random() * 1500 + 5500; 
@@ -486,16 +485,14 @@
             
             let premioFinal = options[index];
 
-            // Guardar el premio en la base de datos local asociada al código
+            // Registrar el código como usado y guardar el premio obtenido
             let db = JSON.parse(localStorage.getItem('codigos_ruleta_v2'));
             db[codigoActual] = { usado: true, premio: premioFinal };
             localStorage.setItem('codigos_ruleta_v2', JSON.stringify(db));
 
-            // Guardar en sesión para mostrar directo en la tarjeta
             sessionStorage.setItem('giro_realizado', 'true');
             sessionStorage.setItem('ultimo_premio', premioFinal);
 
-            // Mostrar el resultado en la misma página sin alertas
             document.getElementById('prizeResultText').textContent = premioFinal;
             cambiarVista('view-blocked');
         }
