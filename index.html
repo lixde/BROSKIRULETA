@@ -108,6 +108,18 @@
             margin-bottom: 15px;
         }
 
+        .prize-highlight {
+            font-size: 1.4rem;
+            color: var(--accent-gold);
+            font-weight: 700;
+            margin: 15px 0;
+            text-shadow: 0 0 10px var(--accent-gold-glow);
+            background: rgba(243, 198, 20, 0.05);
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px dashed var(--accent-gold);
+        }
+
         input[type="text"], input[type="password"] {
             width: 100%;
             padding: 12px;
@@ -168,8 +180,8 @@
             border-radius: 50%;
             box-shadow: 0 0 20px rgba(0,0,0,0.8), 0 0 10px var(--accent-gold-glow);
             background-color: #16161a;
-            width: 300px;
-            height: 300px;
+            width: 280px;
+            height: 280px;
         }
 
         .pointer {
@@ -295,18 +307,18 @@
             <h2>¡Gira y Gana!</h2>
             <div class="wheel-container">
                 <div class="pointer"></div>
-                <!-- Canvas HD -->
                 <canvas id="wheel" width="600" height="600"></canvas>
             </div>
             <button id="spinBtn" class="btn-main" onclick="girarRuleta()">Girar Ruleta</button>
         </div>
     </section>
 
-    <!-- VISTA 3: BLOQUEO POST-USO -->
+    <!-- VISTA 3: BLOQUEO / RESULTADO -->
     <section id="view-blocked" class="view-section">
         <div class="card-box">
-            <h2>Código ya utilizado</h2>
-            <p>Este código ya fue canjeado o ya realizaste tu giro. Cada código tiene un único uso.</p>
+            <h2>¡Código ya utilizado!</h2>
+            <p>Este código ya fue canjeado anteriormente. El premio obtenido con este código fue:</p>
+            <div id="prizeResultText" class="prize-highlight">CARGANDO...</div>
             <button class="btn-secondary" onclick="cerrarSesionLocal()">Salir</button>
         </div>
     </section>
@@ -338,17 +350,21 @@
     </footer>
 
     <script>
-        // Base de datos de códigos iniciales
-        if (!localStorage.getItem('codigos_ruleta')) {
+        // Estructura de base de datos: { "CODIGO": { usado: true/false, premio: "..." } }
+        if (!localStorage.getItem('codigos_ruleta_v2')) {
             const codigosIniciales = {
-                "RULETA01": false,
-                "BROSKI10": false
+                "RULETA01": { usado: false, premio: "" },
+                "BROSKI10": { usado: false, premio: "" }
             };
-            localStorage.setItem('codigos_ruleta', JSON.stringify(codigosIniciales));
+            localStorage.setItem('codigos_ruleta_v2', JSON.stringify(codigosIniciales));
         }
+
+        let codigoActual = "";
 
         window.onload = function() {
             if (sessionStorage.getItem('giro_realizado') === 'true') {
+                let ultimoPremio = sessionStorage.getItem('ultimo_premio') || "Premio Canjeado";
+                document.getElementById('prizeResultText').textContent = ultimoPremio;
                 cambiarVista('view-blocked');
             }
         };
@@ -358,12 +374,10 @@
             document.getElementById(idVista).classList.add('active');
         }
 
-        let codigoActual = "";
-
         function validarCodigo() {
             const input = document.getElementById('codeInput').value.trim().toUpperCase();
             const errorDiv = document.getElementById('errorMsg');
-            let db = JSON.parse(localStorage.getItem('codigos_ruleta'));
+            let db = JSON.parse(localStorage.getItem('codigos_ruleta_v2'));
 
             if (!input) {
                 errorDiv.textContent = "Por favor, escribe un código.";
@@ -373,8 +387,10 @@
                 errorDiv.textContent = "Código inválido.";
                 return;
             }
-            if (db[input] === true) {
-                errorDiv.textContent = "Este código ya ha sido utilizado.";
+            if (db[input].usado === true) {
+                // Si ya está usado, mostrar directamente lo que ganó
+                document.getElementById('prizeResultText').textContent = db[input].premio || "Premio Canjeado";
+                cambiarVista('view-blocked');
                 return;
             }
 
@@ -389,11 +405,10 @@
             location.reload();
         }
 
-        // --- RULETA HD (12 casillas, textos verticales) ---
+        // --- RULETA HD (12 casillas, rotación ajustada 90°) ---
         const canvas = document.getElementById('wheel');
         const ctx = canvas.getContext('2d');
         
-        // 12 casillas exactas (4 de cada uno)
         const options = [
             'RODMAN 9,100', 'TYSON 7,000', '10% DESC',
             'RODMAN 9,100', 'TYSON 7,000', '10% DESC',
@@ -426,9 +441,9 @@
                 ctx.fillStyle = (options[i] === '10% DESC') ? '#f3c614' : '#ffffff';
                 ctx.font = 'bold 16px Poppins, sans-serif';
                 
-                // Rotación vertical orientada al radio
+                // Rotación vertical con ajuste de 90° adicionales para mantener los textos dentro
                 ctx.translate(center + Math.cos(angle + arc / 2) * textRadius, center + Math.sin(angle + arc / 2) * textRadius);
-                ctx.rotate(angle + arc / 2 + Math.PI / 2);
+                ctx.rotate(angle + arc / 2 + Math.PI / 2 + Math.PI / 2);
                 
                 const text = options[i];
                 ctx.fillText(text, -ctx.measureText(text).width / 2, 0);
@@ -444,14 +459,10 @@
         function girarRuleta() {
             document.getElementById('spinBtn').disabled = true;
             
-            let db = JSON.parse(localStorage.getItem('codigos_ruleta'));
-            db[codigoActual] = true;
-            localStorage.setItem('codigos_ruleta', JSON.stringify(db));
-            sessionStorage.setItem('giro_realizado', 'true');
-
-            spinAngleStart = Math.random() * 10 + 10;
+            // Más giros agregando mayor velocidad inicial y tiempo prolongado
+            spinAngleStart = Math.random() * 20 + 25; 
             spinTime = 0;
-            spinTimeTotal = Math.random() * 2000 + 3000;
+            spinTimeTotal = Math.random() * 1500 + 5500; 
             rotateWheel();
         }
 
@@ -474,7 +485,18 @@
             const index = Math.floor((360 - degrees % 360) / arcd);
             
             let premioFinal = options[index];
-            alert(`¡Felicidades! Ganaste: ${premioFinal}`);
+
+            // Guardar el premio en la base de datos local asociada al código
+            let db = JSON.parse(localStorage.getItem('codigos_ruleta_v2'));
+            db[codigoActual] = { usado: true, premio: premioFinal };
+            localStorage.setItem('codigos_ruleta_v2', JSON.stringify(db));
+
+            // Guardar en sesión para mostrar directo en la tarjeta
+            sessionStorage.setItem('giro_realizado', 'true');
+            sessionStorage.setItem('ultimo_premio', premioFinal);
+
+            // Mostrar el resultado en la misma página sin alertas
+            document.getElementById('prizeResultText').textContent = premioFinal;
             cambiarVista('view-blocked');
         }
 
@@ -510,20 +532,21 @@
         function crearCodigo() {
             const nuevoTxt = document.getElementById('newCodeText').value.trim().toUpperCase();
             if (!nuevoTxt) return;
-            let db = JSON.parse(localStorage.getItem('codigos_ruleta'));
-            db[nuevoTxt] = false;
-            localStorage.setItem('codigos_ruleta', JSON.stringify(db));
+            let db = JSON.parse(localStorage.getItem('codigos_ruleta_v2'));
+            db[nuevoTxt] = { usado: false, premio: "" };
+            localStorage.setItem('codigos_ruleta_v2', JSON.stringify(db));
             document.getElementById('newCodeText').value = '';
             actualizarListaCodigos();
         }
 
         function actualizarListaCodigos() {
-            let db = JSON.parse(localStorage.getItem('codigos_ruleta'));
+            let db = JSON.parse(localStorage.getItem('codigos_ruleta_v2'));
             let container = document.getElementById('codeListContainer');
             container.innerHTML = "";
             for (let codigo in db) {
-                let estadoClass = db[codigo] ? "code-item used" : "code-item";
-                let estadoTexto = db[codigo] ? "Usado" : "Disponible";
+                let data = db[codigo];
+                let estadoClass = data.usado ? "code-item used" : "code-item";
+                let estadoTexto = data.usado ? `Usado (${data.premio})` : "Disponible";
                 container.innerHTML += `<div class="${estadoClass}"><span>${codigo}</span> <span><b>${estadoTexto}</b></span></div>`;
             }
         }
