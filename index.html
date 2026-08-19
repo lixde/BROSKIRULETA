@@ -283,7 +283,7 @@
 </head>
 <body>
 
-    <!-- Header Fijo: Doble clic en "BROSKI" abre el panel admin -->
+    <!-- Header Fijo -->
     <header>
         <div class="logo" ondblclick="abrirAdmin()">
             <i class="fa-solid fa-crown"></i> BROSKI<span>MARKET</span>
@@ -313,12 +313,22 @@
         </div>
     </section>
 
-    <!-- VISTA 3: BLOQUEO / RESULTADO -->
+    <!-- VISTA 3: RESULTADO RECIÉN GANADO (SIN MENSAJE DE USADO) -->
+    <section id="view-result" class="view-section">
+        <div class="card-box">
+            <h2>¡Felicidades!</h2>
+            <p>Has ganado el siguiente premio:</p>
+            <div id="newPrizeText" class="prize-highlight">CARGANDO...</div>
+            <button class="btn-secondary" onclick="cerrarSesionLocal()">Salir</button>
+        </div>
+    </section>
+
+    <!-- VISTA 4: BLOQUEO POR CÓDIGO YA USADO ANTERIORMENTE -->
     <section id="view-blocked" class="view-section">
         <div class="card-box">
             <h2>¡Código ya utilizado!</h2>
             <p>Este código ya fue canjeado anteriormente. El premio obtenido con este código fue:</p>
-            <div id="prizeResultText" class="prize-highlight">CARGANDO...</div>
+            <div id="oldPrizeText" class="prize-highlight">CARGANDO...</div>
             <button class="btn-secondary" onclick="cerrarSesionLocal()">Salir</button>
         </div>
     </section>
@@ -363,8 +373,8 @@
         window.onload = function() {
             if (sessionStorage.getItem('giro_realizado') === 'true') {
                 let ultimoPremio = sessionStorage.getItem('ultimo_premio') || "Premio Canjeado";
-                document.getElementById('prizeResultText').textContent = ultimoPremio;
-                cambiarVista('view-blocked');
+                document.getElementById('newPrizeText').textContent = ultimoPremio;
+                cambiarVista('view-result');
             }
         };
 
@@ -387,14 +397,14 @@
                 return;
             }
 
-            // Validar si ya fue usado ANTES de dejarlo pasar a la ruleta
+            // Si el código YA fue usado en una sesión pasada, mostrar pantalla de bloqueo
             if (db[input].usado === true) {
-                document.getElementById('prizeResultText').textContent = db[input].premio || "Premio Canjeado";
+                document.getElementById('oldPrizeText').textContent = db[input].premio || "Premio Canjeado";
                 cambiarVista('view-blocked');
                 return;
             }
 
-            // Si el código NO está usado, se le permite avanzar a la ruleta
+            // Si el código es nuevo/sin usar, dejarlo pasar a la ruleta
             codigoActual = input;
             errorDiv.textContent = "";
             cambiarVista('view-wheel');
@@ -485,7 +495,7 @@
             
             let premioFinal = options[index];
 
-            // Registrar el código como usado y guardar el premio obtenido
+            // Guardar el código como usado y registrar su premio
             let db = JSON.parse(localStorage.getItem('codigos_ruleta_v2'));
             db[codigoActual] = { usado: true, premio: premioFinal };
             localStorage.setItem('codigos_ruleta_v2', JSON.stringify(db));
@@ -493,8 +503,9 @@
             sessionStorage.setItem('giro_realizado', 'true');
             sessionStorage.setItem('ultimo_premio', premioFinal);
 
-            document.getElementById('prizeResultText').textContent = premioFinal;
-            cambiarVista('view-blocked');
+            // Mostrar la pantalla de premio recién ganado (SIN texto de "ya utilizado")
+            document.getElementById('newPrizeText').textContent = premioFinal;
+            cambiarVista('view-result');
         }
 
         function easeOut(t, b, c, d) {
