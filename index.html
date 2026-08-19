@@ -313,7 +313,7 @@
         </div>
     </section>
 
-    <!-- VISTA 3: RESULTADO RECIÉN GANADO (SIN MENSAJE DE USADO) -->
+    <!-- VISTA 3: RESULTADO RECIÉN GANADO -->
     <section id="view-result" class="view-section">
         <div class="card-box">
             <h2>¡Felicidades!</h2>
@@ -397,14 +397,12 @@
                 return;
             }
 
-            // Si el código YA fue usado en una sesión pasada, mostrar pantalla de bloqueo
             if (db[input].usado === true) {
                 document.getElementById('oldPrizeText').textContent = db[input].premio || "Premio Canjeado";
                 cambiarVista('view-blocked');
                 return;
             }
 
-            // Si el código es nuevo/sin usar, dejarlo pasar a la ruleta
             codigoActual = input;
             errorDiv.textContent = "";
             cambiarVista('view-wheel');
@@ -416,7 +414,7 @@
             location.reload();
         }
 
-        // --- RULETA HD ---
+        // --- RULETA HD SÚPER FLUIDA (120 FPS Native) ---
         const canvas = document.getElementById('wheel');
         const ctx = canvas.getContext('2d');
         
@@ -436,18 +434,28 @@
             const textRadius = 160;
             const center = 300;
             ctx.clearRect(0, 0, 600, 600);
-            ctx.lineWidth = 2;
 
             for (let i = 0; i < options.length; i++) {
                 const angle = startAngle + i * arc;
+                
+                // Rellenar cada porción sin líneas cruzadas en el centro
                 ctx.fillStyle = colors[i % colors.length];
-                ctx.strokeStyle = '#f3c614';
                 ctx.beginPath();
+                ctx.moveTo(center, center);
                 ctx.arc(center, center, outsideRadius, angle, angle + arc, false);
-                ctx.arc(center, center, 0, angle + arc, angle, true);
-                ctx.stroke();
+                ctx.lineTo(center, center);
                 ctx.fill();
 
+                // Borde dorado exterior limpio
+                ctx.save();
+                ctx.strokeStyle = '#f3c614';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(center, center, outsideRadius, angle, angle + arc, false);
+                ctx.stroke();
+                ctx.restore();
+
+                // Textos
                 ctx.save();
                 ctx.fillStyle = (options[i] === '10% DESC') ? '#f3c614' : '#ffffff';
                 ctx.font = 'bold 16px Poppins, sans-serif';
@@ -461,41 +469,56 @@
             }
         }
 
-        let spinTimeout = null;
+        let animationFrameId = null;
         let spinAngleStart = 0;
         let spinTime = 0;
         let spinTimeTotal = 0;
+        let lastTimestamp = 0;
 
         function girarRuleta() {
             document.getElementById('spinBtn').disabled = true;
             
-            spinAngleStart = Math.random() * 20 + 25; 
+            spinAngleStart = Math.random() * 0.3 + 0.4; // Velocidad inicial optimizada para alta tasa de refresco
             spinTime = 0;
-            spinTimeTotal = Math.random() * 1500 + 5500; 
-            rotateWheel();
+            spinTimeTotal = 4500; // Duración total del giro en milisegundos (4.5 segundos)
+            lastTimestamp = performance.now();
+            
+            cancelAnimationFrame(animationFrameId);
+            rotateWheel(lastTimestamp);
         }
 
-        function rotateWheel() {
-            spinTime += 30;
+        function rotateWheel(timestamp) {
+            const deltaTime = timestamp - lastTimestamp;
+            lastTimestamp = timestamp;
+
+            spinTime += deltaTime;
             if (spinTime >= spinTimeTotal) {
                 stopRotateWheel();
                 return;
             }
-            const spinAngle = spinAngleStart - easeOut(spinTime, 0, spinAngleStart, spinTimeTotal);
-            startAngle += (spinAngle * Math.PI / 180);
+
+            // Cálculo de desaceleración por curvas cúbicas (suavizado uniforme a cualquier FPS)
+            let progress = spinTime / spinTimeTotal;
+            let currentSpeed = spinAngleStart * (1 - easeOutCubic(progress));
+            
+            startAngle += currentSpeed * (deltaTime / 16.66); // Normalizado a referencia de 60fps base por frame
             drawWheel();
-            spinTimeout = setTimeout(rotateWheel, 30);
+
+            animationFrameId = requestAnimationFrame(rotateWheel);
+        }
+
+        function easeOutCubic(t) {
+            return 1 - Math.pow(1 - t, 3);
         }
 
         function stopRotateWheel() {
-            clearTimeout(spinTimeout);
+            cancelAnimationFrame(animationFrameId);
             const degrees = startAngle * 180 / Math.PI + 90;
             const arcd = arc * 180 / Math.PI;
             const index = Math.floor((360 - degrees % 360) / arcd);
             
             let premioFinal = options[index];
 
-            // Guardar el código como usado y registrar su premio
             let db = JSON.parse(localStorage.getItem('codigos_ruleta_v2'));
             db[codigoActual] = { usado: true, premio: premioFinal };
             localStorage.setItem('codigos_ruleta_v2', JSON.stringify(db));
@@ -503,15 +526,8 @@
             sessionStorage.setItem('giro_realizado', 'true');
             sessionStorage.setItem('ultimo_premio', premioFinal);
 
-            // Mostrar la pantalla de premio recién ganado (SIN texto de "ya utilizado")
             document.getElementById('newPrizeText').textContent = premioFinal;
             cambiarVista('view-result');
-        }
-
-        function easeOut(t, b, c, d) {
-            t /= d;
-            t--;
-            return c * (t * t * t + 1) + b;
         }
 
         // --- PANEL ADMIN ---
