@@ -428,8 +428,8 @@
         const ctx = canvas.getContext('2d');
         
         const options = [
-            'RODMAN 9,100', 'TYSON 7,000', '10% DESC', '20% DESC',
-            'RODMAN 9,100', 'TYSON 7,000', '10% DESC', '20% DESC'
+            'RODMAN 9,100', 'TYSON 7,000', '10% DESC', 'RODMAN 9,100', 
+            'TYSON 7,000', '10% DESC', 'RODMAN 9,100', 'TYSON 7,000'
         ];
         
         const colors = ['#1a1a24', '#222230', '#2a2a3c', '#1f1f2b'];
@@ -482,14 +482,28 @@
         function girarRuleta() {
             document.getElementById('spinBtn').disabled = true;
             
-            let indicesPermitidos = [];
+            // --- NUEVAS PROBABILIDADES ---
+            // RODMAN 9,100: 40% | TYSON 7,000: 40% | 10% DESC: 20%
+            let randomNum = Math.random() * 100;
+            let premioElegido = "";
+
+            if (randomNum < 40) {
+                premioElegido = 'RODMAN 9,100';
+            } else if (randomNum < 80) {
+                premioElegido = 'TYSON 7,000';
+            } else {
+                premioElegido = '10% DESC';
+            }
+
+            // Buscar índices en la ruleta que coincidan con el premio elegido
+            let indicesDisponibles = [];
             options.forEach((opt, idx) => {
-                if (opt !== '20% DESC') {
-                    indicesPermitidos.push(idx);
+                if (opt === premioElegido) {
+                    indicesDisponibles.push(idx);
                 }
             });
 
-            let indiceGanadorForzado = indicesPermitidos[Math.floor(Math.random() * indicesPermitidos.length)];
+            let indiceGanadorForzado = indicesDisponibles[Math.floor(Math.random() * indicesDisponibles.length)];
             
             const arcd = arc * 180 / Math.PI;
             let anguloObjetivoGrados = 360 - (indiceGanadorForzado * arcd + arcd / 2);
