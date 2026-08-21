@@ -427,12 +427,13 @@
         const canvas = document.getElementById('wheel');
         const ctx = canvas.getContext('2d');
         
+        // Se agregaron los nuevos premios a la lista visual de la ruleta
         const options = [
-            'RODMAN 9,100', 'TYSON 7,000', '10% DESC', 'RODMAN 9,100', 
-            'TYSON 7,000', '10% DESC', 'RODMAN 9,100', 'TYSON 7,000'
+            'RODMAN 9,100', 'TYSON 7,000', '10% DESC', '70% DESC', 
+            'RODMAN 9,100', 'TYSON 7,000', '100% DESC', '50% DESC'
         ];
         
-        const colors = ['#1a1a24', '#222230', '#2a2a3c', '#1f1f2b'];
+        const colors = ['#1a1a24', '#222230', '#2a2a3c', '#1f1f2b', '#262638', '#1c1c28', '#2e2e42', '#21212f'];
         let startAngle = 0;
         const arc = Math.PI / (options.length / 2);
 
@@ -462,7 +463,7 @@
 
                 ctx.save();
                 ctx.fillStyle = (options[i].includes('DESC')) ? '#f3c614' : '#ffffff';
-                ctx.font = 'bold 15px Poppins, sans-serif';
+                ctx.font = 'bold 13px Poppins, sans-serif';
                 
                 ctx.translate(center + Math.cos(angle + arc / 2) * textRadius, center + Math.sin(angle + arc / 2) * textRadius);
                 ctx.rotate(angle + arc / 2 + Math.PI / 2 + Math.PI / 2);
@@ -482,8 +483,9 @@
         function girarRuleta() {
             document.getElementById('spinBtn').disabled = true;
             
-            // --- NUEVAS PROBABILIDADES ---
+            // --- PROBABILIDADES ESTRICTAS ---
             // RODMAN 9,100: 40% | TYSON 7,000: 40% | 10% DESC: 20%
+            // 70%, 100% y 50% de descuento tienen 0% de probabilidad
             let randomNum = Math.random() * 100;
             let premioElegido = "";
 
