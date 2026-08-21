@@ -183,8 +183,8 @@
             border-radius: 50%;
             box-shadow: 0 0 20px rgba(0,0,0,0.8), 0 0 10px var(--accent-gold-glow);
             background-color: #16161a;
-            width: 280px;
-            height: 280px;
+            width: 300px;
+            height: 300px;
         }
 
         .pointer {
@@ -192,9 +192,9 @@
             top: -2px;
             width: 0;
             height: 0;
-            border-left: 9px solid transparent;
-            border-right: 9px solid transparent;
-            border-bottom: 20px solid var(--accent-gold);
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 22px solid var(--accent-gold);
             z-index: 10;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
         }
@@ -423,23 +423,25 @@
             location.reload();
         }
 
-        // --- RULETA HD SÚPER FLUIDA ---
+        // --- RULETA DE 16 CASILLAS (DOBLE) ---
         const canvas = document.getElementById('wheel');
         const ctx = canvas.getContext('2d');
         
-        // Se agregaron los nuevos premios a la lista visual de la ruleta
+        // 16 casillas en total (con las casillas de 0% de probabilidad de adorno)
         const options = [
+            'RODMAN 9,100', 'TYSON 7,000', '10% DESC', '70% DESC', 
+            'RODMAN 9,100', 'TYSON 7,000', '100% DESC', '50% DESC',
             'RODMAN 9,100', 'TYSON 7,000', '10% DESC', '70% DESC', 
             'RODMAN 9,100', 'TYSON 7,000', '100% DESC', '50% DESC'
         ];
         
-        const colors = ['#1a1a24', '#222230', '#2a2a3c', '#1f1f2b', '#262638', '#1c1c28', '#2e2e42', '#21212f'];
+        const colors = ['#1a1a24', '#222230', '#2a2a3c', '#1f1f2b', '#262638', '#1c1c28', '#2e2e42', '#21212f', '#1a1a24', '#222230', '#2a2a3c', '#1f1f2b', '#262638', '#1c1c28', '#2e2e42', '#21212f'];
         let startAngle = 0;
         const arc = Math.PI / (options.length / 2);
 
         function drawWheel() {
             const outsideRadius = 270;
-            const textRadius = 160;
+            const textRadius = 150;
             const center = 300;
             ctx.clearRect(0, 0, 600, 600);
 
@@ -463,7 +465,8 @@
 
                 ctx.save();
                 ctx.fillStyle = (options[i].includes('DESC')) ? '#f3c614' : '#ffffff';
-                ctx.font = 'bold 13px Poppins, sans-serif';
+                // Texto más grande (16px en negrita)
+                ctx.font = 'bold 16px Poppins, sans-serif';
                 
                 ctx.translate(center + Math.cos(angle + arc / 2) * textRadius, center + Math.sin(angle + arc / 2) * textRadius);
                 ctx.rotate(angle + arc / 2 + Math.PI / 2 + Math.PI / 2);
@@ -485,7 +488,6 @@
             
             // --- PROBABILIDADES ESTRICTAS ---
             // RODMAN 9,100: 40% | TYSON 7,000: 40% | 10% DESC: 20%
-            // 70%, 100% y 50% de descuento tienen 0% de probabilidad
             let randomNum = Math.random() * 100;
             let premioElegido = "";
 
@@ -497,7 +499,6 @@
                 premioElegido = '10% DESC';
             }
 
-            // Buscar índices en la ruleta que coincidan con el premio elegido
             let indicesDisponibles = [];
             options.forEach((opt, idx) => {
                 if (opt === premioElegido) {
@@ -509,14 +510,14 @@
             
             const arcd = arc * 180 / Math.PI;
             let anguloObjetivoGrados = 360 - (indiceGanadorForzado * arcd + arcd / 2);
-            let vueltasExtra = 360 * 5; 
+            let vueltasExtra = 360 * 8; // 8 vueltas para mayor emoción y duración
             let anguloFinalRad = (anguloObjetivoGrados + vueltasExtra - 90) * (Math.PI / 180);
             
             startAngle = anguloFinalRad % (Math.PI * 2);
 
-            spinAngleStart = Math.random() * 0.3 + 0.4; 
+            spinAngleStart = Math.random() * 0.2 + 0.3; 
             spinTime = 0;
-            spinTimeTotal = 4500; 
+            spinTimeTotal = 7500; // 7.5 segundos de giro total
             lastTimestamp = performance.now();
             
             cancelAnimationFrame(animationFrameId);
